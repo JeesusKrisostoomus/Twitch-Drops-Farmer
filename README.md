@@ -10,5 +10,5 @@ It checks every x minutes (default 5 minutes) if any of the target streamers is 
 1) Registered application over at https://dev.twitch.tv/console
 - Client ID
 - Client Secret
-- Access Token
+- Access Token (You can get this through the program)
 2) This progam
