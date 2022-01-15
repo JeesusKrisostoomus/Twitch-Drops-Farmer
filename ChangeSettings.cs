@@ -8,16 +8,16 @@ namespace TwitchDropFarmBot
         public static void ChangeProgramSettings()
         {
             //all of this could have been better but it just works
-
             Console.Clear();
+            //Program.cfg = Functions.LoadConfig();
             Console.WriteLine(
                 "Current Settings" +
-                "\n- Client ID: " + Properties.Settings.Default.client_id +
-                "\n- Client Secret: " + Properties.Settings.Default.client_secret +
-                "\n- Access Token (OAuth): " + Properties.Settings.Default.access_token +
-                "\n- Auto Open Stream (This will open a new browser and take focus): " + Properties.Settings.Default.auto_open +
-                "\n- Auto Close Stream (This will close the whole browser): " + Properties.Settings.Default.auto_close +
-                "\n- Browser Process Name: " + Properties.Settings.Default.browser_procname
+                "\n- Client ID: " + Program.cfg.client_id.ToString() +
+                "\n- Client Secret: " + Program.cfg.client_secret.ToString() +
+                "\n- Access Token (OAuth): " + Program.cfg.access_token.ToString() +
+                "\n- Auto Open Stream (This will open a new browser and take focus): " + Program.cfg.auto_open_stream +
+                "\n- Auto Close Stream (This will close the whole browser): " + Program.cfg.auto_close_stream +
+                "\n- Browser Process Name: " + Program.cfg.browser_proc_name
             );
             Console.WriteLine();
             Console.WriteLine(
@@ -27,7 +27,10 @@ namespace TwitchDropFarmBot
                 "\n4) Auto Open Stream" +
                 "\n5) Auto Close Browser" +
                 "\n6) Browser Process Name" +
-                "\n10) Back"
+                "\n10) Encrypt Config Values/Save Config" +
+                "\n11) Decrypt Config Values" + 
+                "\n12) Reload Config" +
+                "\n13) Back"
             );
             Console.Write(":");
             Console.Write("");
@@ -37,8 +40,9 @@ namespace TwitchDropFarmBot
                 Console.Clear();
                 Console.Write("Enter new Client ID: ");
                 var new_client_id = Console.ReadLine();
-                Properties.Settings.Default.client_id = new_client_id.Trim();
-                Properties.Settings.Default.Save();
+                Program.cfg.client_id = new_client_id.Trim();
+                Console.WriteLine("Client ID Changed.");
+                Thread.Sleep(1000);
                 ChangeProgramSettings();
             }
             else if (choice == 2.ToString())
@@ -46,8 +50,9 @@ namespace TwitchDropFarmBot
                 Console.Clear();
                 Console.Write("Enter new Client Secret: ");
                 var new_client_secret = Console.ReadLine();
-                Properties.Settings.Default.client_secret = new_client_secret.Trim();
-                Properties.Settings.Default.Save();
+                Program.cfg.client_secret = new_client_secret.Trim();
+                Console.WriteLine("Client Secret Changed.");
+                Thread.Sleep(1000);
                 ChangeProgramSettings();
             }
             else if (choice == 3.ToString())
@@ -59,15 +64,13 @@ namespace TwitchDropFarmBot
             else if (choice == 4.ToString())
             {
                 Console.Clear();
-                Properties.Settings.Default.auto_open = !Properties.Settings.Default.auto_open;
-                Properties.Settings.Default.Save();
+                Program.cfg.auto_open_stream = !(bool)Program.cfg.auto_open_stream;
                 ChangeProgramSettings();
             }
             else if (choice == 5.ToString())
             {
                 Console.Clear();
-                Properties.Settings.Default.auto_close = !Properties.Settings.Default.auto_close;
-                Properties.Settings.Default.Save();
+                Program.cfg.auto_close_stream = !(bool)Program.cfg.auto_close_stream;
                 ChangeProgramSettings();
             }
             else if (choice == 6.ToString())
@@ -86,18 +89,35 @@ namespace TwitchDropFarmBot
                 Console.ResetColor();
                 Console.Write("Enter browser process name: ");
                 var browser_process_name = Console.ReadLine();
-                Properties.Settings.Default.browser_procname = browser_process_name.Trim();
-                Properties.Settings.Default.Save();
+                Program.cfg.browser_proc_name = browser_process_name.Trim();
                 ChangeProgramSettings();
             }
             else if (choice == 10.ToString())
+            {
+                Functions.SaveConfig();
+                Thread.Sleep(1000);
+                ChangeProgramSettings();
+            }
+            else if (choice == 11.ToString())
+            {
+                Program.cfg.client_id = Functions.DecryptString(Program.cfg.client_id.ToString());
+                Program.cfg.client_secret = Functions.DecryptString(Program.cfg.client_secret.ToString());
+                Program.cfg.access_token = Functions.DecryptString(Program.cfg.access_token.ToString());
+                ChangeProgramSettings();
+            }
+            else if (choice == 12.ToString())
+            {
+                Program.cfg = Functions.LoadConfig();
+                ChangeProgramSettings();
+            }
+            else if (choice == 13.ToString())
             {
                 Console.Clear();
                 Program.Main();
             }
             else
             {
-                Console.WriteLine("This option is not possible.");
+                Console.WriteLine("Invalid option.");
                 Thread.Sleep(2000);
                 Console.Clear();
                 ChangeProgramSettings();
