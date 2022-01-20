@@ -5,6 +5,7 @@ using System.Dynamic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 
 namespace TwitchDropFarmBot
 {
@@ -13,15 +14,20 @@ namespace TwitchDropFarmBot
         private static dynamic SID = System.Security.Principal.WindowsIdentity.GetCurrent().User;
         private static string passPhrase = "";
         public static bool IsPassSet = false;
+        public static bool IsPassInvalid = false;
 
-        public static void AskForCreds()
+        public static void AskForCreds(bool changePass = false)
         {
             Console.Clear();
-            Console.WriteLine("Enter your password (If it is your first time then put new pass and remember it)");
+            if (changePass) {
+                Console.WriteLine("Enter new password");
+            } else {
+                Console.WriteLine("Enter your password (If it is your first time then put new pass and remember it)");
+            }
             Console.Write(":");
             passPhrase = Console.ReadLine().Trim();
             if (passPhrase == string.Empty)
-                AskForCreds();
+                AskForCreds(changePass);
             IsPassSet = true;
             Console.Clear();
         }
@@ -48,22 +54,46 @@ namespace TwitchDropFarmBot
             Trace.WriteLine("Plain: " + plainText + " Cipher: " + Convert.ToBase64String(cipherTextBytes));
             return Convert.ToBase64String(cipherTextBytes);
         }
-        public static string DecryptString(string cipherText)
+        public static string DecryptString(string cipherText, bool showText = true)
         {
-            byte[] initVectorBytes = Encoding.UTF8.GetBytes(initVector);
-            byte[] cipherTextBytes = Convert.FromBase64String(cipherText);
-            PasswordDeriveBytes password = new PasswordDeriveBytes(passPhrase, null);
-            byte[] keyBytes = password.GetBytes(keysize / 8);
-            RijndaelManaged symmetricKey = new RijndaelManaged();
-            symmetricKey.Mode = CipherMode.CBC;
-            ICryptoTransform decryptor = symmetricKey.CreateDecryptor(keyBytes, initVectorBytes);
-            MemoryStream memoryStream = new MemoryStream(cipherTextBytes);
-            CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read);
-            byte[] plainTextBytes = new byte[cipherTextBytes.Length];
-            int decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
-            memoryStream.Close();
-            cryptoStream.Close();
-            return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
+            try
+            {
+                byte[] initVectorBytes = Encoding.UTF8.GetBytes(initVector);
+                byte[] cipherTextBytes = Convert.FromBase64String(cipherText);
+                PasswordDeriveBytes password = new PasswordDeriveBytes(passPhrase, null);
+                byte[] keyBytes = password.GetBytes(keysize / 8);
+                RijndaelManaged symmetricKey = new RijndaelManaged();
+                symmetricKey.Mode = CipherMode.CBC;
+                ICryptoTransform decryptor = symmetricKey.CreateDecryptor(keyBytes, initVectorBytes);
+                MemoryStream memoryStream = new MemoryStream(cipherTextBytes);
+                CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read);
+                byte[] plainTextBytes = new byte[cipherTextBytes.Length];
+                int decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
+                memoryStream.Close();
+                cryptoStream.Close();
+                return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
+            } catch (Exception ex) {
+                if (ex.Message.Contains("Padding is invalid and cannot be removed"))
+                {
+                    if (showText)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Invalid Password! Unable to decrypt!");
+                        Console.ResetColor();
+                        Thread.Sleep(350);
+                    }
+                    IsPassInvalid = true;
+                    return cipherText;
+                }
+                else {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Unable to decrypt! Exception: " + ex);
+                    Console.ResetColor();
+                    Thread.Sleep(3000);
+                    return cipherText;
+                }
+            }
+            
         }
         public static dynamic LoadConfig()
         {
@@ -103,8 +133,7 @@ namespace TwitchDropFarmBot
 
         public static void GenerateConfigFile()
         {
-            if (File.Exists("config.json"))
-                File.Delete("config.json");
+            if (File.Exists("config.json")) File.Delete("config.json");
 
             var newCfgFile = File.Create("config.json");
             newCfgFile.Close();
@@ -118,6 +147,7 @@ namespace TwitchDropFarmBot
             new_config.browser_proc_name = "";
 
             File.WriteAllText("config.json", JsonConvert.SerializeObject(new_config));
+            Console.WriteLine("Config has been generated.");
         }
     }
 }

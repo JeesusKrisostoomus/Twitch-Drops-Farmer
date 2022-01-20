@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 
 namespace TwitchDropFarmBot
@@ -27,10 +28,10 @@ namespace TwitchDropFarmBot
                 "\n4) Auto Open Stream" +
                 "\n5) Auto Close Browser" +
                 "\n6) Browser Process Name" +
-                "\n10) Encrypt Config Values/Save Config" +
-                "\n11) Decrypt Config Values" + 
-                "\n12) Reload Config" +
-                "\n13) Back"
+                "\n7) Encrypt Config Values/Save Config" +
+                "\n8) Decrypt Config Values (use only if you want to see the values)" + 
+                "\n9) Reload Config" +
+                "\n99) Back"
             );
             Console.Write(":");
             Console.Write("");
@@ -92,25 +93,27 @@ namespace TwitchDropFarmBot
                 Program.cfg.browser_proc_name = browser_process_name.Trim();
                 ChangeProgramSettings();
             }
-            else if (choice == 10.ToString())
+            else if (choice == 7.ToString())
             {
                 Functions.SaveConfig();
+                Console.WriteLine("Config saved/Encrypted.");
                 Thread.Sleep(1000);
                 ChangeProgramSettings();
             }
-            else if (choice == 11.ToString())
+            else if (choice == 8.ToString())
             {
                 Program.cfg.client_id = Functions.DecryptString(Program.cfg.client_id.ToString());
-                Program.cfg.client_secret = Functions.DecryptString(Program.cfg.client_secret.ToString());
-                Program.cfg.access_token = Functions.DecryptString(Program.cfg.access_token.ToString());
+                Program.cfg.client_secret = Functions.DecryptString(Program.cfg.client_secret.ToString(), false);
+                Program.cfg.access_token = Functions.DecryptString(Program.cfg.access_token.ToString(), false);
+                
                 ChangeProgramSettings();
             }
-            else if (choice == 12.ToString())
+            else if (choice == 9.ToString())
             {
                 Program.cfg = Functions.LoadConfig();
                 ChangeProgramSettings();
             }
-            else if (choice == 13.ToString())
+            else if (choice == 99.ToString())
             {
                 Console.Clear();
                 Program.Main();
@@ -118,7 +121,7 @@ namespace TwitchDropFarmBot
             else
             {
                 Console.WriteLine("Invalid option.");
-                Thread.Sleep(2000);
+                Thread.Sleep(1000);
                 Console.Clear();
                 ChangeProgramSettings();
             }

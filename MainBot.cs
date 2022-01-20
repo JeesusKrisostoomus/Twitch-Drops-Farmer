@@ -94,7 +94,7 @@ namespace TwitchDropFarmBot
                         try
                         {
                             httpRequest.Headers["client-id"] = Functions.DecryptString(Program.cfg.client_id.ToString());
-                            httpRequest.Headers["Authorization"] = "Bearer " + Functions.DecryptString(Program.cfg.access_token.ToString()); //Bearer could and most likely will change some time but until then its good.
+                            httpRequest.Headers["Authorization"] = "Bearer " + Functions.DecryptString(Program.cfg.access_token.ToString());
                         } catch (Exception ex) {
                             if (ex.Message.Contains("Padding is invalid and cannot be removed") && ex.StackTrace.Contains("at TwitchDropFarmBot.Functions.DecryptString(String cipherText)"))
                             {
