@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Spectre.Console;
+using System;
 using System.IO;
 using System.Threading;
 
@@ -10,120 +11,126 @@ namespace TwitchDropFarmBot
         {
             //all of this could have been better but it just works
             Console.Clear();
+            AnsiConsole.Write(
+                new FigletText("Settings")
+                    .Centered()
+                    .Color(Color.White)
+            );
+            AnsiConsole.Write(new Rule());
             //Program.cfg = Functions.LoadConfig();
-            Console.WriteLine(
-                "Current Settings" +
-                "\n- Client ID: " + Program.cfg.client_id.ToString() +
-                "\n- Client Secret: " + Program.cfg.client_secret.ToString() +
-                "\n- Access Token (OAuth): " + Program.cfg.access_token.ToString() +
-                "\n- Auto Open Stream (This will open a new browser and take focus): " + Program.cfg.auto_open_stream +
-                "\n- Auto Close Stream (This will close the whole browser): " + Program.cfg.auto_close_stream +
-                "\n- Browser Process Name: " + Program.cfg.browser_proc_name
+            AnsiConsole.MarkupLine(String.Format("Current Settings:" +
+                "\n- [teal]Client ID[/]: {0}" +
+                "\n- [teal]Client Secret[/]: {1}" +
+                "\n- [teal]Access Token (OAuth)[/]: {2}" +
+                "\n- [teal]Auto Open Stream (This will open a new browser and take focus)[/]: {3}" +
+                "\n- [teal]Auto Close Stream (This will close the whole browser)[/]: {4}" +
+                "\n- [teal]Browser Process Name[/]: {5}",
+                Program.cfg.client_id.ToString(), 
+                Program.cfg.client_secret.ToString(), 
+                Program.cfg.access_token.ToString(), 
+                Program.cfg.auto_open_stream, 
+                Program.cfg.auto_close_stream, 
+                Program.cfg.browser_proc_name
+            ));
+            
+            var choice = AnsiConsole.Prompt(
+                new SelectionPrompt<Option>()
+                    .Title("")
+                    .PageSize(10)
+                    .AddChoices(new[] {
+                        new Option { Id = 1, Name = "Client ID" },
+                        new Option { Id = 2, Name = "Client Secret" },
+                        new Option { Id = 3, Name = "Generate Access Token (OAuth)" },
+                        new Option { Id = 4, Name = "Auto Open Stream" },
+                        new Option { Id = 5, Name = "Auto Close Browser" },
+                        new Option { Id = 6, Name = "Browser Process Name" },
+                        new Option { Id = 7, Name = "Encrypt Config Values/Save Config" },
+                        new Option { Id = 8, Name = "Decrypt Config Values [red](use only if you want to see the values)[/]" },
+                        new Option { Id = 9, Name = "Reload Config" },
+                        new Option { Id = 10, Name = "Back" },
+                    })
+                    .UseConverter(option => option.Name)
             );
-            Console.WriteLine();
-            Console.WriteLine(
-                "\n1) Client ID" +
-                "\n2) Client Secret" +
-                "\n3) Access Token (OAuth)" +
-                "\n4) Auto Open Stream" +
-                "\n5) Auto Close Browser" +
-                "\n6) Browser Process Name" +
-                "\n7) Encrypt Config Values/Save Config" +
-                "\n8) Decrypt Config Values (use only if you want to see the values)" + 
-                "\n9) Reload Config" +
-                "\n99) Back"
-            );
-            Console.Write(":");
-            Console.Write("");
-            var choice = Console.ReadLine();
-            if (choice == 1.ToString())
+            
+            switch (choice.Id)
             {
-                Console.Clear();
-                Console.Write("Enter new Client ID: ");
-                var new_client_id = Console.ReadLine();
-                Program.cfg.client_id = new_client_id.Trim();
-                Console.WriteLine("Client ID Changed.");
-                Thread.Sleep(1000);
-                ChangeProgramSettings();
-            }
-            else if (choice == 2.ToString())
-            {
-                Console.Clear();
-                Console.Write("Enter new Client Secret: ");
-                var new_client_secret = Console.ReadLine();
-                Program.cfg.client_secret = new_client_secret.Trim();
-                Console.WriteLine("Client Secret Changed.");
-                Thread.Sleep(1000);
-                ChangeProgramSettings();
-            }
-            else if (choice == 3.ToString())
-            {
-                Console.Clear();
-                GetOAuth.MainFunc();
-                ChangeProgramSettings();
-            }
-            else if (choice == 4.ToString())
-            {
-                Console.Clear();
-                Program.cfg.auto_open_stream = !(bool)Program.cfg.auto_open_stream;
-                ChangeProgramSettings();
-            }
-            else if (choice == 5.ToString())
-            {
-                Console.Clear();
-                Program.cfg.auto_close_stream = !(bool)Program.cfg.auto_close_stream;
-                ChangeProgramSettings();
-            }
-            else if (choice == 6.ToString())
-            {
-                Console.Clear();
-                Console.WriteLine(
-                    "Examples" +
-                    "\nOpera - opera" +
-                    "\nGoogle Chrome - chrome" +
-                    "\nFirefox - firefox" +
-                    "\nMicrosoft Edge - MicrosoftEdge" +
-                    "\nInternet Explorer - iexplore"
-                );
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Be sure that the name is correct. It will try killing anything you told it to.");
-                Console.ResetColor();
-                Console.Write("Enter browser process name: ");
-                var browser_process_name = Console.ReadLine();
-                Program.cfg.browser_proc_name = browser_process_name.Trim();
-                ChangeProgramSettings();
-            }
-            else if (choice == 7.ToString())
-            {
-                Functions.SaveConfig();
-                Console.WriteLine("Config saved/Encrypted.");
-                Thread.Sleep(1000);
-                ChangeProgramSettings();
-            }
-            else if (choice == 8.ToString())
-            {
-                Program.cfg.client_id = Functions.DecryptString(Program.cfg.client_id.ToString());
-                Program.cfg.client_secret = Functions.DecryptString(Program.cfg.client_secret.ToString(), false);
-                Program.cfg.access_token = Functions.DecryptString(Program.cfg.access_token.ToString(), false);
-                
-                ChangeProgramSettings();
-            }
-            else if (choice == 9.ToString())
-            {
-                Program.cfg = Functions.LoadConfig();
-                ChangeProgramSettings();
-            }
-            else if (choice == 99.ToString())
-            {
-                Console.Clear();
-                Program.Main();
-            }
-            else
-            {
-                Console.WriteLine("Invalid option.");
-                Thread.Sleep(1000);
-                Console.Clear();
-                ChangeProgramSettings();
+                case 1:
+                    Console.Clear();
+                    Program.cfg.client_id = AnsiConsole.Ask<string>("Enter new Client ID:");
+                    ChangeProgramSettings();
+                    break;
+
+                case 2:
+                    Console.Clear();
+                    Program.cfg.client_secret = AnsiConsole.Ask<string>("Enter new Client Secret:");
+                    ChangeProgramSettings();
+                    break;
+
+                case 3:
+                    Console.Clear();
+                    GetOAuth.MainFunc();
+                    ChangeProgramSettings();
+                    break;
+
+                case 4:
+                    Console.Clear();
+                    Program.cfg.auto_open_stream = !(bool)Program.cfg.auto_open_stream;
+                    ChangeProgramSettings();
+                    break;
+
+                case 5:
+                    Console.Clear();
+                    Program.cfg.auto_close_stream = !(bool)Program.cfg.auto_close_stream;
+                    ChangeProgramSettings();
+                    break;
+
+                case 6:
+                    Console.Clear();
+
+                    AnsiConsole.MarkupLine("Examples:" +
+                        "\nOpera - [teal]opera[/]" +
+                        "\nGoogle Chrome - [teal]chrome[/]" +
+                        "\nFirefox - [teal]firefox[/]" +
+                        "\nMicrosoft Edge - [teal]MicrosoftEdge[/]" +
+                        "\nInternet Explorer - [teal]iexplore[/]"
+                    );
+
+                    AnsiConsole.MarkupLine("\n[yellow]Be sure that the name is correct. It will try killing anything you told it to.[/]");
+                    Program.cfg.browser_proc_name = AnsiConsole.Ask<string>("Enter browser process name:");
+                    ChangeProgramSettings();
+                    break;
+
+                case 7:
+                    Functions.SaveConfig();
+                    AnsiConsole.WriteLine("[green]Config save/Encrypted[/]");
+                    Thread.Sleep(1000);
+                    ChangeProgramSettings();
+                    break;
+
+                case 8:
+                    Program.cfg.client_id = Functions.DecryptString(Program.cfg.client_id.ToString());
+                    Program.cfg.client_secret = Functions.DecryptString(Program.cfg.client_secret.ToString(), false);
+                    Program.cfg.access_token = Functions.DecryptString(Program.cfg.access_token.ToString(), false);
+
+                    ChangeProgramSettings();
+                    break;
+
+                case 9:
+                    Program.cfg = Functions.LoadConfig();
+                    ChangeProgramSettings();
+                    break;
+
+                case 10:
+                    Console.Clear();
+                    Program.Main();
+                    break;
+
+                default:
+                    AnsiConsole.MarkupLine("[orangered1]Invalid Option[/]");
+                    Thread.Sleep(1000);
+                    Console.Clear();
+                    ChangeProgramSettings();
+                    break;
             }
         }
     }

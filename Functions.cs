@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Spectre.Console;
 using System;
 using System.Diagnostics;
 using System.Dynamic;
@@ -20,12 +21,16 @@ namespace TwitchDropFarmBot
         {
             Console.Clear();
             if (changePass) {
-                Console.WriteLine("Enter new password");
+                passPhrase = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Enter new password: ")
+                        .PromptStyle("red")
+                        .Secret());
             } else {
-                Console.WriteLine("Enter your password (If it is your first time then put new pass and remember it)");
+                passPhrase = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Enter your password (If it's your first time then put new pass): ")
+                        .PromptStyle("red")
+                        .Secret());
             }
-            Console.Write(":");
-            passPhrase = Console.ReadLine().Trim();
             if (passPhrase == string.Empty)
                 AskForCreds(changePass);
             IsPassSet = true;
@@ -77,18 +82,15 @@ namespace TwitchDropFarmBot
                 {
                     if (showText)
                     {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Invalid Password! Unable to decrypt!");
-                        Console.ResetColor();
+                        AnsiConsole.MarkupLine("[red]Invalid Password![/]");
                         Thread.Sleep(350);
                     }
                     IsPassInvalid = true;
                     return cipherText;
                 }
                 else {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Unable to decrypt! Exception: " + ex);
-                    Console.ResetColor();
+                    AnsiConsole.MarkupLine("[red]Unable to decrypt![/]\n" +
+                        "Exception: "+ex.Message);
                     Thread.Sleep(3000);
                     return cipherText;
                 }
@@ -110,19 +112,23 @@ namespace TwitchDropFarmBot
             //I know that all of this is a very shitty way of doing it but aslong as it does the job let it be
 
             if (Program.cfg.client_id.ToString().EndsWith("=")) {
-                Console.WriteLine("Client ID already encrypted. Unable to save. (Probably wrong password)");
+                //Console.WriteLine("Client ID already encrypted. Unable to save. (Probably wrong password)");
+                AnsiConsole.MarkupLine("[red]Client ID already encrypted. Unable to save. (Possibly wrong password)[/]");
             } else {
                 Program.cfg.client_id = Functions.EncryptString(Program.cfg.client_id.ToString());
             }
 
             if (Program.cfg.client_secret.ToString().EndsWith("=")) {
-                Console.WriteLine("Client Secret already encrypted. Unable to save. (Probably wrong password)");
-            } else {
+                //Console.WriteLine("Client Secret already encrypted. Unable to save. (Probably wrong password)");
+                AnsiConsole.MarkupLine("[red]Client Secret already encrypted. Unable to save. (Probably wrong password)[/]");
+            }
+            else {
                 Program.cfg.client_secret = Functions.EncryptString(Program.cfg.client_secret.ToString());
             }
 
             if (Program.cfg.access_token.ToString().EndsWith("=")) {
-                Console.WriteLine("Access Token already encrypted. Unable to save. (Probably wrong password)");
+                AnsiConsole.MarkupLine("[red]Access Token already encrypted. Unable to save. (Probably wrong password)[/]");
+                //Console.WriteLine("Access Token already encrypted. Unable to save. (Probably wrong password)");
             } else {
                 Program.cfg.access_token = Functions.EncryptString(Program.cfg.access_token.ToString());
             }
@@ -147,7 +153,8 @@ namespace TwitchDropFarmBot
             new_config.browser_proc_name = "";
 
             File.WriteAllText("config.json", JsonConvert.SerializeObject(new_config));
-            Console.WriteLine("Config has been generated.");
+            //Console.WriteLine("Config has been generated.");
+            AnsiConsole.MarkupLine("[green]Config has been generated.[/]");
         }
     }
 }

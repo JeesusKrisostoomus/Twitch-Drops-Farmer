@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Net;
 using System.Diagnostics;
+using Spectre.Console;
 
 namespace TwitchDropFarmBot
 {
@@ -21,31 +22,31 @@ namespace TwitchDropFarmBot
             string SpecificGameName = "";
             bool CFS = false;
 
-            Console.WriteLine("How long to watch each stream before closing? (In Minutes)");
-            Console.Write(":");
-            CloseAfterMinutes = Int32.Parse(Console.ReadLine());
-
-            Console.WriteLine("Wait for specific game? True/False");
-            Console.Write(":");
-            SpecificGame = Boolean.Parse(Console.ReadLine());
+            CloseAfterMinutes = AnsiConsole.Ask<Int32>("How long to watch streams? [aqua](Minutes)[/]");
+            SpecificGame = AnsiConsole.Ask<Boolean>("Wait for specific game? [aqua](True/False)[/]");
 
             if (SpecificGame)
             {
-                Console.WriteLine("Specific Game Name");
-                Console.Write(":");
-                SpecificGameName = Console.ReadLine().Trim();
+                SpecificGameName = AnsiConsole.Ask<string>("Specific game name: ");
             }
             
             if (!File.Exists("streamerNames.txt"))
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("streamerNames.txt Does not exist! Creating the file now.");
-                File.Create("streamerNames.txt");
+                AnsiConsole.MarkupLine("[red]streamerNames.txt Does not exist![/]\n[aqua]Creating the file now...[/]");
+                try
+                {
+                    File.Create("streamerNames.txt");
+                    AnsiConsole.MarkupLine("[green]File created![/]");
+                }
+                catch
+                {
+                    AnsiConsole.MarkupLine("[red]Unable to create file streamerNames.txt[/]");
+                    return;
+                }
                 Console.WriteLine("Please put streamer names into streamerNames.txt (1 NAME PER LINE!)");
                 Console.WriteLine("Full file path: " + Path.GetFullPath("streamerNames.txt"));
-                Console.ResetColor();
-                Console.WriteLine("Press ANY key to exit");
-                Console.ReadKey();
+                Thread.Sleep(2000);
+                Program.Main();
                 return;
             }
 
@@ -53,15 +54,10 @@ namespace TwitchDropFarmBot
             if (lines.Length == 0)
             {
                 Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Error! streamerNames.txt Does not contain any streamer names to watch. \n" +
-                    "Please enter streamer names to watch.\n" +
-                    "1 NAME PER LINE!"
-                );
+                AnsiConsole.MarkupLine("[red]streamerNames.txt Does not contain any streamer names![/]");
                 Console.WriteLine("Full file path: " + Path.GetFullPath("streamerNames.txt"));
-                Console.ResetColor();
-                Console.WriteLine("Press ANY key to exit.");
-                Console.ReadKey();
+                Thread.Sleep(2000);
+                Program.Main();
                 return;
             }
 
@@ -228,8 +224,8 @@ namespace TwitchDropFarmBot
                 }
                 else
                 {
-                    Console.WriteLine("Next streamer check in 5 minutes.");
-                    Thread.Sleep(300000);
+                    Console.WriteLine("Next streamer check in 1 minutes.");
+                    Thread.Sleep(60000);
                     Console.Clear();
                 }
             }
