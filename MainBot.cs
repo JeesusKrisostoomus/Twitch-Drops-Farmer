@@ -11,7 +11,7 @@ namespace TwitchDropFarmBot
 {
     class MainBot
     {
-        public static void Main()
+        public static async void Main()
         {
             List<string> StreamerList = new List<string>(); //Where all of the streamer names will be stored at.
 
@@ -25,10 +25,7 @@ namespace TwitchDropFarmBot
             CloseAfterMinutes = AnsiConsole.Ask<Int32>("How long to watch streams? [aqua](Minutes)[/]");
             SpecificGame = AnsiConsole.Ask<Boolean>("Wait for specific game? [aqua](True/False)[/]");
 
-            if (SpecificGame)
-            {
-                SpecificGameName = AnsiConsole.Ask<string>("Specific game name: ");
-            }
+            if (SpecificGame) SpecificGameName = AnsiConsole.Ask<string>("Specific game name: ");
             
             if (!File.Exists("streamerNames.txt"))
             {
@@ -85,8 +82,6 @@ namespace TwitchDropFarmBot
                         var url = "https://api.twitch.tv/helix/search/channels?query=" + streamername;
                         var httpRequest = (HttpWebRequest)WebRequest.Create(url);
 
-                        //Headers required for checking if the person is live or not
-                        //Also this try catch should work but if it doesnt then oh well fuck this
                         try
                         {
                             httpRequest.Headers["client-id"] = Functions.DecryptString(Program.cfg.client_id.ToString());
@@ -110,10 +105,13 @@ namespace TwitchDropFarmBot
                             var instance = JsonConvert.DeserializeObject<dynamic>(result);
                             foreach (var item in instance.data) //All of this could have been done using other ways but ye sure.
                             {
+                                Trace.WriteLine("iterator itetm");
                                 if (item.display_name == streamername || item.broadcaster_login == streamername)
                                 {
+                                    Trace.WriteLine("name bool");
                                     if (item.is_live == "false")
                                     {
+                                        Trace.WriteLine("islive false");
                                         Console.ForegroundColor = ConsoleColor.Red;
                                         Console.WriteLine("Streamer: {0} | Live: {1}", item.display_name, item.is_live);
                                         Console.ResetColor();
@@ -122,83 +120,47 @@ namespace TwitchDropFarmBot
                                     {
                                         if (SpecificGame)
                                         {
-                                            if (item.game_name.ToString().ToLower().Contains(SpecificGameName.ToLower()))
+                                            if (!item.game_name.ToString().ToLower().Contains(SpecificGameName.ToLower()))
                                             {
-                                                Console.ForegroundColor = ConsoleColor.Green;
-                                                Console.WriteLine("Streamer: {0} | Live: {1} | Game: {2}", item.display_name, item.is_live, item.game_name);
-                                                Console.ResetColor();
-
-                                                if ((bool)Program.cfg.auto_open_stream)
-                                                {
-                                                    DateTime currentTime = DateTime.Now;
-                                                    DateTime timeLater = currentTime.AddMinutes(CloseAfterMinutes);
-                                                    Console.WriteLine("Opening stream and closing it after " + CloseAfterMinutes + " minutes");
-                                                    Console.WriteLine("Stream will be closed at: " + timeLater);
-
-                                                    var psi = new System.Diagnostics.ProcessStartInfo();
-                                                    psi.UseShellExecute = true;
-                                                    psi.FileName = "https://www.twitch.tv/" + streamername.ToLower();
-                                                    Process.Start(psi);
-                                                    Thread.Sleep(1000 * 60 * CloseAfterMinutes);
-                                                    StreamerList.Remove(streamername);
-                                                    CFS = true;
-
-                                                    if (Program.cfg.auto_close_stream.ToString())
-                                                    {
-                                                        foreach (Process myProc in Process.GetProcesses())
-                                                        {
-                                                            if (myProc.ProcessName == Program.cfg.browser_proc_name.ToString())
-                                                            {
-                                                                myProc.Kill();
-                                                            }
-                                                        }
-                                                    }
-
-                                                    break;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                Console.ForegroundColor = ConsoleColor.Red;
-                                                Console.WriteLine("Streamer: {0} | Live: {1}", item.display_name, item.is_live);
-                                                Console.ResetColor();
-                                            }
-                                        } else
-                                        {
-                                            Console.ForegroundColor = ConsoleColor.Green;
-                                            Console.WriteLine("Streamer: {0} | Live: {1} | Game: {2}", item.display_name, item.is_live, item.game_name);
-                                            Console.ResetColor();
-
-                                            if (Program.cfg.auto_open_stream)
-                                            {
-                                                DateTime currentTime = DateTime.Now;
-                                                DateTime timeLater = currentTime.AddMinutes(CloseAfterMinutes);
-                                                Console.WriteLine("Opening stream and closing it after " + CloseAfterMinutes + " minutes");
-                                                Console.WriteLine("Stream will be closed at: " + timeLater);
-
-                                                var psi = new System.Diagnostics.ProcessStartInfo();
-                                                psi.UseShellExecute = true;
-                                                psi.FileName = "https://www.twitch.tv/" + streamername.ToLower();
-                                                Process.Start(psi);
-                                                Thread.Sleep(1000 * 60 * CloseAfterMinutes);
-                                                StreamerList.Remove(streamername);
-                                                CFS = true;
-
-                                                if (Program.cfg.auto_close_stream.ToString())
-                                                {
-                                                    foreach (Process myProc in Process.GetProcesses())
-                                                    {
-                                                        if (myProc.ProcessName == Program.cfg.browser_proc_name.ToString())
-                                                        {
-                                                            myProc.Kill();
-                                                        }
-                                                    }
-                                                }
-
+                                                Console.WriteLine("{0} is not streaming specified game.", item.display_name);
                                                 break;
                                             }
                                         }
-                                        
+                                        Console.ForegroundColor = ConsoleColor.Green;
+                                        Console.WriteLine("Streamer: {0} | Live: {1} | Game: {2}", item.display_name, item.is_live, item.game_name);
+                                        Console.ResetColor();
+
+                                        if ((Boolean)Program.cfg.auto_open_stream)
+                                        {
+                                            DateTime currentTime = DateTime.Now;
+                                            DateTime timeLater = currentTime.AddMinutes(CloseAfterMinutes);
+                                            Console.WriteLine("Opening stream and closing it after " + CloseAfterMinutes + " minutes");
+                                            Console.WriteLine("Stream will be closed at: " + timeLater);
+
+                                            var psi = new System.Diagnostics.ProcessStartInfo();
+                                            psi.UseShellExecute = true;
+                                            psi.FileName = "https://www.twitch.tv/" + streamername.ToLower(); //browser executable path
+                                            psi.WindowStyle = ProcessWindowStyle.Minimized;
+                                            psi.CreateNoWindow = true;
+                                            Process.Start(psi);
+                                            Thread.Sleep(1000 * 60 * CloseAfterMinutes);
+                                            StreamerList.Remove(streamername);
+                                            CFS = true;
+
+                                            if ((bool)Program.cfg.auto_close_stream)
+                                            {
+                                                foreach (Process myProc in Process.GetProcesses())
+                                                {
+                                                    if (myProc.ProcessName == Program.cfg.browser_proc_name.ToString())
+                                                    {
+                                                        myProc.Kill();
+                                                    }
+                                                }
+                                            }
+
+                                            break;
+                                        }
+
                                     }
                                 }
                             }

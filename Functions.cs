@@ -107,6 +107,12 @@ namespace TwitchDropFarmBot
             }
         }
 
+        public static bool CheckLive()
+        {
+            // check if current streamer is live and return the value.
+            return false;
+        }
+
         public static void SaveConfig()
         {
             //I know that all of this is a very shitty way of doing it but aslong as it does the job let it be
