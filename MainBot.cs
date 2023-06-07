@@ -7,11 +7,15 @@ using System.Net;
 using System.Diagnostics;
 using Spectre.Console;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace TwitchDropFarmBot
 {
     class MainBot
     {
+        internal static int id = 0;
+        internal static int watched = 0;
+
         public static async void Main()
         {
             Console.Clear();
@@ -92,9 +96,12 @@ namespace TwitchDropFarmBot
 
                                         if ((Boolean)Program.cfg.auto_open_stream)
                                         {
+                                            id = streamer.Id;
+                                            watched = streamer.Watched;
+
                                             DateTime currentTime = DateTime.Now;
-                                            DateTime timeLater = currentTime.AddMinutes(streamer.HowLongToWatch);
-                                            Console.WriteLine("Opening stream and closing it after " + streamer.HowLongToWatch + " minutes");
+                                            DateTime timeLater = currentTime.AddMinutes((streamer.HowLongToWatch-watched));
+                                            Console.WriteLine("Opening stream and closing it after " + (streamer.HowLongToWatch - watched) + " minutes");
                                             Console.WriteLine("Stream will be closed at: " + timeLater);
 
                                             var psi = new System.Diagnostics.ProcessStartInfo();
@@ -102,7 +109,10 @@ namespace TwitchDropFarmBot
                                             psi.WindowStyle = ProcessWindowStyle.Minimized;
                                             psi.CreateNoWindow = true;
                                             Process.Start(psi);
-                                            Thread.Sleep(1000 * 60 * streamer.HowLongToWatch);
+                                            
+                                            Task Watcher = Task.Run(AddTime);
+                                            Thread.Sleep(1000 * 60 * (streamer.HowLongToWatch-watched));
+                                            Watcher.Dispose();
                                             ManageStreamers.streamers.RemoveAll(res => res.Id == streamer.Id);
                                             DBManager.UpdateDone(streamer.Id, true);
                                             CFS = true;
@@ -151,6 +161,24 @@ namespace TwitchDropFarmBot
                     Console.Clear();
                 }
             }
+        }
+        public static async Task Watch()
+        {
+            //Watch the thing
+        }
+
+        public static async Task AddTime()
+        {
+            while (true)
+            {
+                await Task.Delay(TimeSpan.FromMinutes(1));
+                watched++;
+                DBManager.UpdateWatchedTime(id, watched);
+            }
+        }
+        public static async Task LiveCheck()
+        {
+            //Every 1 minute check if stream is live or not. If not stop watching the stream and go onto another one
         }
     }
 }
