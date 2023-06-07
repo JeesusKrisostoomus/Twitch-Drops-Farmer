@@ -4,6 +4,7 @@ using System.IO;
 using Spectre.Console;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using LiteDB;
 
 namespace TwitchDropFarmBot
 {
@@ -23,6 +24,9 @@ namespace TwitchDropFarmBot
                 Functions.GenerateConfigFile();
                 AnsiConsole.MarkupLine("[red]Config file does not exist![/] Generating one now.");
             }
+            //if (!File.Exists(DBManager.databasePath)) { new LiteDatabase(DBManager.databasePath); }
+            DBManager dbManager = new DBManager(DBManager.databasePath);
+            ManageStreamers.LoadStreamerList();
 
             if (!Functions.IsPassSet)
                 Functions.AskForCreds();
@@ -57,6 +61,8 @@ namespace TwitchDropFarmBot
                     new Option { Id = 2, Name = "Change Settings" },
                     new Option { Id = 3, Name = "Generate New Config [red](Will delete current config)[/]" },
                     new Option { Id = 4, Name = "Change Password" },
+                    //5 is ignored as it is used for deleting outdated configs if they do exist.
+                    new Option { Id = 7, Name = "Manage Streamers" },
                     new Option { Id = 6, Name = "[red]Quit[/]" },
             };
 
@@ -142,6 +148,10 @@ namespace TwitchDropFarmBot
 
                 case 6:
                     Environment.Exit(0);
+                    break;
+
+                case 7:
+                    ManageStreamers.Main();
                     break;
 
                 default:
