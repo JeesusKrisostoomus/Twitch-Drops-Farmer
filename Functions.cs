@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Spectre.Console;
 using System;
 using System.Diagnostics;
@@ -57,12 +58,14 @@ namespace TwitchDropFarmBot
             memoryStream.Close();
             cryptoStream.Close();
             Trace.WriteLine("Plain: " + plainText + " Cipher: " + Convert.ToBase64String(cipherTextBytes));
-            return Convert.ToBase64String(cipherTextBytes);
+            return "ENC_" + Convert.ToBase64String(cipherTextBytes);
         }
         public static string DecryptString(string cipherText, bool showText = true)
         {
             try
             {
+                cipherText = cipherText.Replace("ENC_", "");
+
                 byte[] initVectorBytes = Encoding.UTF8.GetBytes(initVector);
                 byte[] cipherTextBytes = Convert.FromBase64String(cipherText);
                 PasswordDeriveBytes password = new PasswordDeriveBytes(passPhrase, null);
@@ -89,9 +92,8 @@ namespace TwitchDropFarmBot
                     return cipherText;
                 }
                 else {
-                    AnsiConsole.MarkupLine("[red]Unable to decrypt![/]\n" +
-                        "Exception: "+ex.Message);
-                    Thread.Sleep(3000);
+                    //AnsiConsole.MarkupLine("[red]Unable to decrypt![/]\n" + "Exception: "+ex.Message);
+                    //Thread.Sleep(3000);
                     return cipherText;
                 }
             }
@@ -107,42 +109,24 @@ namespace TwitchDropFarmBot
             }
         }
 
-        public static bool CheckLive()
-        {
-            // check if current streamer is live and return the value.
-            return false;
-        }
-
         public static void SaveConfig()
         {
-            //I know that all of this is a very shitty way of doing it but aslong as it does the job let it be
+            if (!CheckEnc(Program.cfg.client_id)) { Program.cfg.client_id = Functions.EncryptString(Program.cfg.client_id.ToString()); }
+            if (!CheckEnc(Program.cfg.client_secret)) { Program.cfg.client_secret = Functions.EncryptString(Program.cfg.client_secret.ToString()); }
+            if (!CheckEnc(Program.cfg.access_token)) { Program.cfg.access_token = Functions.EncryptString(Program.cfg.access_token.ToString()); }
 
-            if (Program.cfg.client_id.ToString().EndsWith("=")) {
-                //Console.WriteLine("Client ID already encrypted. Unable to save. (Probably wrong password)");
-                AnsiConsole.MarkupLine("[red]Client ID already encrypted. Unable to save. (Possibly wrong password)[/]");
-            } else {
-                Program.cfg.client_id = Functions.EncryptString(Program.cfg.client_id.ToString());
-            }
-
-            if (Program.cfg.client_secret.ToString().EndsWith("=")) {
-                //Console.WriteLine("Client Secret already encrypted. Unable to save. (Probably wrong password)");
-                AnsiConsole.MarkupLine("[red]Client Secret already encrypted. Unable to save. (Probably wrong password)[/]");
-            }
-            else {
-                Program.cfg.client_secret = Functions.EncryptString(Program.cfg.client_secret.ToString());
-            }
-
-            if (Program.cfg.access_token.ToString().EndsWith("=")) {
-                AnsiConsole.MarkupLine("[red]Access Token already encrypted. Unable to save. (Probably wrong password)[/]");
-                //Console.WriteLine("Access Token already encrypted. Unable to save. (Probably wrong password)");
-            } else {
-                Program.cfg.access_token = Functions.EncryptString(Program.cfg.access_token.ToString());
-            }
-            Trace.WriteLine("Client ID, Client Secret, Access Token have been encrypted");
+            Trace.WriteLine("stuff encrypted");
 
             File.WriteAllText("config.json", JsonConvert.SerializeObject(Program.cfg));
         }
-
+        public static bool CheckEnc(dynamic input)
+        {
+            // at this point. its easiest and enough
+            input = input.ToString();
+            if (input.Contains("ENC_")) return true;
+            else 
+            return false;
+        }
         public static void GenerateConfigFile()
         {
             if (File.Exists("config.json")) File.Delete("config.json");

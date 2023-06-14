@@ -6,8 +6,8 @@ using System.Threading;
 using System.Net;
 using System.Diagnostics;
 using Spectre.Console;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Serialization;
 
 namespace TwitchDropFarmBot
 {
@@ -15,11 +15,17 @@ namespace TwitchDropFarmBot
     {
         internal static int id = 0;
         internal static int watched = 0;
+        internal static int wf = 0;
+        internal static string streamername = "";
+        internal static bool CurrLive = false;
+        internal static bool AlrWatching = false;
+        internal static int nightmare = 1000;
+        internal static bool stopTask = false;
 
-        public static async void Main()
+        public static void Main()
         {
             Console.Clear();
-            var streamername = "";
+            //var streamername = "";
             bool CFS = false;
 
             while (true)
@@ -63,75 +69,133 @@ namespace TwitchDropFarmBot
                                 return;
                             }
                             Trace.WriteLine(ex.Message + " | " + ex.StackTrace);
-                        }           
+                        }
 
                         var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
                         using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
                         {
                             string result = streamReader.ReadToEnd();
                             var instance = JsonConvert.DeserializeObject<dynamic>(result);
-                            foreach (var item in instance.data) //All of this could have been done using other ways but ye sure.
+                            foreach (var item in instance.data)
                             {
-                                if (item.display_name == streamername || item.broadcaster_login == streamername)
+                                AlrWatching = false;
+                                if (item.display_name == streamername || item.broadcaster_login == streamername && !AlrWatching)
                                 {
                                     if (item.is_live == "false")
                                     {
-                                        Console.ForegroundColor = ConsoleColor.Red;
-                                        Console.WriteLine("Streamer: {0} | Live: {1}", item.display_name, item.is_live);
-                                        Console.ResetColor();
+                                        AnsiConsole.MarkupLine("[red]Streamer {0} is not live.[/]", streamername); //possibly start leaving this message out?
+                                        continue;
                                     }
-                                    else
+                                    if (item.is_live == "true" && streamer.SpecificGame && !item.game_name.ToString().ToLower().Contains(streamer.SpecificGameName.ToLower()))
                                     {
-                                        if (streamer.SpecificGame)
+                                        AnsiConsole.MarkupLine("[yellow]Streamer {0} is not streaming specified game.[/]", streamername);
+                                        continue;
+                                    }
+                                    if ((Boolean)Program.cfg.auto_open_stream && !AlrWatching)
+                                    {
+                                        AlrWatching = true;
+
+                                        Task Timer = null;
+                                        Task<bool> LiveChecker = null;
+
+                                        id = streamer.Id;
+                                        watched = streamer.Watched;
+                                        wf = streamer.HowLongToWatch;
+
+                                        if (watched >= wf)
                                         {
-                                            if (!item.game_name.ToString().ToLower().Contains(streamer.SpecificGameName.ToLower()))
-                                            {
-                                                Console.WriteLine("{0} is not streaming specified game.", item.display_name);
-                                                break;
-                                            }
+                                            AnsiConsole.MarkupLine("[yellow]User has already been watched. Skipping.[/]");
+                                            DBManager.UpdateDone(id, true);
+                                            continue;
                                         }
-                                        Console.ForegroundColor = ConsoleColor.Green;
-                                        Console.WriteLine("Streamer: {0} | Live: {1} | Game: {2}", item.display_name, item.is_live, item.game_name);
-                                        Console.ResetColor();
 
-                                        if ((Boolean)Program.cfg.auto_open_stream)
-                                        {
-                                            id = streamer.Id;
-                                            watched = streamer.Watched;
 
-                                            DateTime currentTime = DateTime.Now;
-                                            DateTime timeLater = currentTime.AddMinutes((streamer.HowLongToWatch-watched));
-                                            Console.WriteLine("Opening stream and closing it after " + (streamer.HowLongToWatch - watched) + " minutes");
-                                            Console.WriteLine("Stream will be closed at: " + timeLater);
+                                        AnsiConsole.MarkupLine("[green]Streamer: {0} | Live: {1} | Game: {2}[/]", item.display_name, item.is_live, item.game_name);
 
-                                            var psi = new System.Diagnostics.ProcessStartInfo();
-                                            psi.FileName = "https://www.twitch.tv/" + streamername.ToLower();
-                                            psi.WindowStyle = ProcessWindowStyle.Minimized;
-                                            psi.CreateNoWindow = true;
-                                            Process.Start(psi);
-                                            
-                                            Task Watcher = Task.Run(AddTime);
-                                            Thread.Sleep(1000 * 60 * (streamer.HowLongToWatch-watched));
-                                            Watcher.Dispose();
-                                            ManageStreamers.streamers.RemoveAll(res => res.Id == streamer.Id);
-                                            DBManager.UpdateDone(streamer.Id, true);
-                                            CFS = true;
+                                        DateTime currentTime = DateTime.Now;
+                                        DateTime timeLater = currentTime.AddMinutes((streamer.HowLongToWatch - watched));
+                                        Console.WriteLine("Opening stream and closing it after " + (streamer.HowLongToWatch - watched) + " minutes");
+                                        Console.WriteLine("Stream will be closed at: " + timeLater);
 
-                                            if ((bool)Program.cfg.auto_close_stream)
+                                        var psi = new System.Diagnostics.ProcessStartInfo();
+                                        psi.FileName = "https://www.twitch.tv/" + streamername.ToLower();
+                                        psi.WindowStyle = ProcessWindowStyle.Minimized;
+                                        psi.CreateNoWindow = true;
+                                        Process.Start(psi);
+                                        nightmare = 60 * 1000 * ((streamer.HowLongToWatch + 1) - watched); // +1 cus it just quickly fixes a problem and i cant be bothered rn to make it some other way.
+                                        CurrLive = true;
+
+                                        Timer = Task.Run(() => AddTime());
+                                        LiveChecker = Task.Run(() => LiveCheck());
+                                        Thread.Sleep(100);
+                                        Thread t = new Thread(() => {
+                                            while (CurrLive && watched <= wf)
                                             {
-                                                foreach (Process myProc in Process.GetProcesses())
+                                                //Console.WriteLine("Thread Tick | {0} | {1} | {2}", watched, wf, watched >= wf);
+                                                if (wf - watched == 1 && stopTask == false) stopTask = true;
+                                                if (!CurrLive)
                                                 {
-                                                    if (myProc.ProcessName == Program.cfg.browser_proc_name.ToString())
-                                                    {
-                                                        myProc.Kill();
-                                                    }
-                                                }
-                                            }
+                                                    Trace.WriteLine("Not live anymore");
+                                                    Timer.Dispose();
+                                                    LiveChecker.Dispose();
+                                                    AlrWatching = false;
+                                                    stopTask = false;
 
-                                            break;
-                                        }
+                                                    if ((bool)Program.cfg.auto_close_stream)
+                                                    {
+                                                        foreach (Process myProc in Process.GetProcesses())
+                                                        {
+                                                            if (myProc.ProcessName == Program.cfg.browser_proc_name.ToString())
+                                                            {
+                                                                myProc.Kill();
+                                                            }
+                                                        }
+                                                    }
+                                                    break;
+
+                                                }
+                                                if (watched >= wf)
+                                                {
+                                                    Trace.WriteLine("Watched == wf");
+                                                    ManageStreamers.streamers.RemoveAll(res => res.Id == streamer.Id);
+                                                    DBManager.UpdateDone(streamer.Id, true);
+                                                    CFS = true;
+                                                    Timer.Dispose();
+                                                    LiveChecker.Dispose();
+                                                    AlrWatching = false;
+                                                    stopTask = false;
+
+                                                    if ((bool)Program.cfg.auto_close_stream)
+                                                    {
+                                                        foreach (Process myProc in Process.GetProcesses())
+                                                        {
+                                                            if (myProc.ProcessName == Program.cfg.browser_proc_name.ToString())
+                                                            {
+                                                                myProc.Kill();
+                                                            }
+                                                        }
+                                                    }
+                                                    break;
+
+                                                }
+                                                Thread.Sleep(1000);
+                                            }
+                                        });
+
+                                        t.Start();
+
+
+                                        Thread.Sleep(nightmare);
+                                        t.Abort();
+
+                                        //Thread.Sleep(1000 * 60 * (streamer.HowLongToWatch-watched));
+                                        //Watcher.Dispose();
+
+                                            
 
                                     }
+
+                                    
                                 }
                             }
 
@@ -142,43 +206,87 @@ namespace TwitchDropFarmBot
                     catch (Exception ex)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Exception: " + ex);
+                        Console.WriteLine("Exception: " + ex.Message);
                         Console.ResetColor();
                     }
                 }
+                if (!AlrWatching)
+                {
+                    if (CFS)
+                    {
+                        Console.WriteLine("Next streamer check in 5 seconds.");
+                        CFS = false;
+                        Thread.Sleep(5000);
+                        Console.Clear();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Next check in 1 minutes.");
+                        Thread.Sleep(60000);
+                        Console.Clear();
+                    }
+                }
 
-                if (CFS)
-                {
-                    Console.WriteLine("Next streamer check in 5 seconds.");
-                    CFS = false;
-                    Thread.Sleep(5000);
-                    Console.Clear();
-                }
-                else
-                {
-                    Console.WriteLine("Next streamer check in 1 minutes.");
-                    Thread.Sleep(60000);
-                    Console.Clear();
-                }
+
             }
         }
-        public static async Task Watch()
-        {
-            //Watch the thing
-        }
-
         public static async Task AddTime()
         {
-            while (true)
+            while (true && !stopTask)
             {
                 await Task.Delay(TimeSpan.FromMinutes(1));
                 watched++;
                 DBManager.UpdateWatchedTime(id, watched);
             }
         }
-        public static async Task LiveCheck()
+        public static async Task<bool> LiveCheck()
         {
-            //Every 1 minute check if stream is live or not. If not stop watching the stream and go onto another one
+            // Every 1 minute check if stream is live or not.
+            // If not stop watching the stream and go onto another one
+            await Task.Delay(TimeSpan.FromMinutes(1));
+            var url = "https://api.twitch.tv/helix/search/channels?query=" + streamername;
+            var httpRequest = (HttpWebRequest)WebRequest.Create(url);
+
+            try
+            {
+                httpRequest.Headers["client-id"] = Functions.DecryptString(Program.cfg.client_id.ToString());
+                httpRequest.Headers["Authorization"] = "Bearer " + Functions.DecryptString(Program.cfg.access_token.ToString());
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("Padding is invalid and cannot be removed") && ex.StackTrace.Contains("at TwitchDropFarmBot.Functions.DecryptString(String cipherText)"))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Given password is most likely incorrect. Closing the program in 2 sec...");
+                    Console.ResetColor();
+                    Thread.Sleep(2000);
+                    return false;
+                }
+                Trace.WriteLine(ex.Message + " | " + ex.StackTrace);
+            }
+
+            var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                string result = streamReader.ReadToEnd();
+                var instance = JsonConvert.DeserializeObject<dynamic>(result);
+                foreach (var item in instance.data)
+                {
+                    if (item.display_name == streamername || item.broadcaster_login == streamername)
+                    {
+                        if (item.is_live == "false")
+                        {
+                            CurrLive = false;
+                            return false;
+                        } else
+                        {
+                            CurrLive = true;
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
         }
     }
 }

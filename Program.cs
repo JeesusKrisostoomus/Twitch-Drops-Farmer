@@ -5,6 +5,7 @@ using Spectre.Console;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using LiteDB;
+using System.Diagnostics;
 
 namespace TwitchDropFarmBot
 {
@@ -108,13 +109,18 @@ namespace TwitchDropFarmBot
                     break;
 
                 case 3:
-                    Functions.GenerateConfigFile();
-                    Functions.AskForCreds(true);
-                    Thread.Sleep(1000);
+                    if (AnsiConsole.Confirm("Are you sure you want to delete the config?"))
+                    {
+                        Functions.GenerateConfigFile();
+                        Functions.AskForCreds(true);
+                        Thread.Sleep(1000);
+                        Console.Clear();
+                        Main();
+                        break;
+                    }
                     Console.Clear();
                     Main();
                     break;
-
                 case 4:
                     if (Functions.IsPassInvalid)
                     {
