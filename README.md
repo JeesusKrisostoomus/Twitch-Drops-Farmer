@@ -1,14 +1,24 @@
-# Twitch-Drops-Farmer
-This scuffed program will farm twitch drops for you
 
+## Usage
 
-***How it works?***
+1) Download this program.
+2) Go to https://dev.twitch.tv/console and login with your twitch account.
+3) Over on twitch developer portal click (Register your Application) unless you already have one.
+4) Fill the details:
+- Name: (Whatever you want)
+- OAuth Redirect URLs: http://localhost
+- Category: (Can leave empty or just pick something)
+5) Click "Create"
+6) Back over at the console click "Manage" behind your application
+7) Start this program and enter password (If its your first time using this then put a password you will use to encrypt the details.)
+8) Now go to "Change Settings" and choose option "Client ID" and from twitch developer console copy your Client ID.
+9) Do the same for "Client Secret". Press "New Secret" to get it.
+10) Now in the application choose "Encrypt Config Values/Save Config"
+11) Now choose "Generate Access Token (OAuth)" and wait for it to be done.
+12) Now again choose "Encrypt Config Values/Save Config".
+13) Add streamers to list, change the settings as you prefer and enjoy the bot.
 
-It checks every x minutes (default 5 minutes) if any of the target streamers is live if they are then a browser window will be opened with their stream running now the program will enter a sleep sleep state for as long as you have set it to sleep (basicly until drop is recieved) then it will close the browser and wait until another stream is found and goes onto that. If all streamers in list have been passed it enters complete state and does nothing.
+#
+Expect there to be bug and possibly some crashes. Please let me know of any problems you encounter.
 
-***What do i need to use it***
-1) Registered application over at https://dev.twitch.tv/console
-- Client ID
-- Client Secret
-- Access Token (You can get this through the program)
-2) This progam
+**AS OF RIGHT NOW IT OPENS THE STREAM IN YOUR DEFAULT BROWSER**
