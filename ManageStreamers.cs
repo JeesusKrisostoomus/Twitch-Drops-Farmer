@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 namespace TwitchDropFarmBot
 {
@@ -73,7 +74,8 @@ namespace TwitchDropFarmBot
                     .AddChoices(new List<Option> {
                         new Option { Id = 1, Name = "Add Streamer" },
                         new Option { Id = 2, Name = "Remove Streamer" },
-                        new Option { id = 3, Name = "Clear List" },
+                        new Option { Id = 3, Name = "Clear List" },
+                        new Option { Id = 4, Name = "Bulk Add Streamers" },
                         new Option { Id = 99, Name = "Back" },
                     })
                     .UseConverter(option => option.Name)
@@ -90,22 +92,28 @@ namespace TwitchDropFarmBot
                     var id = AnsiConsole.Ask<Int32>("Enter streamer ID:");
                     if (!AnsiConsole.Confirm("Are you sure you want to remove the streamer?"))
                     {
+                        Main();
                         break;
                     }
                     DBManager.DeleteStreamData(id);
                     Main();
                     break;
-                case 3:
-                    var id = AnsiConsole.Ask<Int32>("Enter streamer ID:");
-                    if (!AnsiConsole.Confirm("Are you sure you want to remove the streamer?"))
+                case 3: // bulk clear list
+                    if (!AnsiConsole.Confirm("[red]Are you sure you want to clear the list?[/]"))
                     {
+                        Main();
                         break;
                     }
                     foreach (StreamerData data in streamers) {
-                        DBManager.DeleteStreamData(streamer.Id);
-                        streamers.Clear();
+                        DBManager.DeleteStreamData(data.Id);
                     }
+                    streamers.Clear();
                     AnsiConsole.MarkupLine("[green]Streamer list has been cleared.[/]");
+                    Thread.Sleep(1000);
+                    Main();
+                    break;
+                case 4:
+                    AddStreamerToList(true);
                     break;
                 case 99:
                     Program.Main();
@@ -139,6 +147,7 @@ namespace TwitchDropFarmBot
         private static void AddStreamerToList(bool bulk = false)
         {
             Console.Clear();
+            if (bulk) AnsiConsole.MarkupLine("[yellow]Seperate all the names with ',' Example: Tilbzik,random_streamer,random_streamer2,random_streamer3[/]");
             string name = AnsiConsole.Ask<string>("Enter Streamer Name:");
             int hltw = AnsiConsole.Ask<Int32>("How long to watch for (Minutes):");
             bool specificGame = AnsiConsole.Ask<bool>("Wait for specific game? (True/False):");
