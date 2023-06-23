@@ -26,6 +26,7 @@ It checks every x minutes (default 1 minute) if any of the target streamers are 
 11) Now choose "Generate Access Token (OAuth)" and wait for it to be done.
 12) Now again choose "Encrypt Config Values/Save Config".
 13) Add streamers to list, change the settings as you prefer and enjoy the bot.
+14[optional]) Use a script that auto-claims twitch drops for you. Otherwise there could be some problems with fe. generic drops in rust
 
 #
 Expect there to be bug and possibly some crashes. Please let me know of any problems you encounter.
