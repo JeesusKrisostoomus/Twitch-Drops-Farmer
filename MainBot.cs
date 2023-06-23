@@ -156,7 +156,6 @@ namespace TwitchDropFarmBot
                                                 }
                                                 if (watched >= wf)
                                                 {
-                                                    Trace.WriteLine("Watched == wf");
                                                     ManageStreamers.streamers.RemoveAll(res => res.Id == streamer.Id);
                                                     DBManager.UpdateDone(streamer.Id, true);
                                                     CFS = true;

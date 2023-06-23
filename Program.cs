@@ -20,6 +20,7 @@ namespace TwitchDropFarmBot
         public static dynamic cfg = null;
         public static void Main()
         {
+            Console.Clear();
             if (!File.Exists("config.json"))
             {
                 Functions.GenerateConfigFile();
