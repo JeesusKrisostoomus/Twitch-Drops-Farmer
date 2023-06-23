@@ -3,6 +3,7 @@ using System.Threading;
 using System.IO;
 using System.Net;
 using Newtonsoft.Json;
+using Spectre.Console;
 
 namespace TwitchDropFarmBot
 {
@@ -11,8 +12,6 @@ namespace TwitchDropFarmBot
         public static void MainFunc()
         {
             string url;
-
-            //also f you twitch
 
             Console.Clear();
 
@@ -46,7 +45,7 @@ namespace TwitchDropFarmBot
                     var data = JsonConvert.DeserializeObject<dynamic>(result);
 
                     Program.cfg.access_token = data.access_token;
-                    Console.WriteLine("Access token should now be set (REMEMBER TO SAVE CONFIG!). Returning in 2 seconds.");
+                    AnsiConsole.MarkupLine("[green]Access token should now be set (REMEMBER TO SAVE CONFIG!).[/]\nReturning in 2 seconds.");
                     //Functions.SaveConfig();
                     Thread.Sleep(2000);
                     Console.Clear();

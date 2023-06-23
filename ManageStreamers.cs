@@ -73,9 +73,9 @@ namespace TwitchDropFarmBot
                     .PageSize(10)
                     .AddChoices(new List<Option> {
                         new Option { Id = 1, Name = "Add Streamer" },
+                        new Option { Id = 4, Name = "Bulk Add Streamers" },
                         new Option { Id = 2, Name = "Remove Streamer" },
                         new Option { Id = 3, Name = "Clear List" },
-                        new Option { Id = 4, Name = "Bulk Add Streamers" },
                         new Option { Id = 99, Name = "Back" },
                     })
                     .UseConverter(option => option.Name)

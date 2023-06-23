@@ -1,13 +1,4 @@
 
-# Twitch Drops Farmer
-
-A scuffed program that will farm twitch drops for you.
-
-***How it works?***
-
-It checks every x minutes (default 1 minute) if any of the target streamers are live if they are then a browser window will be opened with their stream running until either the drop is obtained or the streamer goes offline. If the streamer goes offline then the stream will continue after they are back online.
-
-
 ## Usage
 
 1) Download this program.

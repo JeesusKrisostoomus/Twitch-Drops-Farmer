@@ -20,20 +20,33 @@ namespace TwitchDropFarmBot
 
         public static void AskForCreds(bool changePass = false)
         {
-            Console.Clear();
-            if (changePass) {
+            if (!File.Exists("config.json"))
+            {
+                passPhrase = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Enter new password (Remember this password): ")
+                        .PromptStyle("red")
+                        .Secret());
+            } 
+            else if (changePass)
+            {
                 passPhrase = AnsiConsole.Prompt(
                     new TextPrompt<string>("Enter new password: ")
                         .PromptStyle("red")
                         .Secret());
-            } else {
+            }
+            else
+            {
                 passPhrase = AnsiConsole.Prompt(
-                    new TextPrompt<string>("Enter your password (If it's your first time then put new pass): ")
+                    new TextPrompt<string>("Enter your password: ")
                         .PromptStyle("red")
                         .Secret());
             }
+
+            Console.Clear();
+
             if (passPhrase == string.Empty)
                 AskForCreds(changePass);
+
             IsPassSet = true;
             Console.Clear();
         }
@@ -111,9 +124,9 @@ namespace TwitchDropFarmBot
 
         public static void SaveConfig()
         {
-            if (!CheckEnc(Program.cfg.client_id)) { Program.cfg.client_id = Functions.EncryptString(Program.cfg.client_id.ToString()); }
-            if (!CheckEnc(Program.cfg.client_secret)) { Program.cfg.client_secret = Functions.EncryptString(Program.cfg.client_secret.ToString()); }
-            if (!CheckEnc(Program.cfg.access_token)) { Program.cfg.access_token = Functions.EncryptString(Program.cfg.access_token.ToString()); }
+            if (!CheckEnc(Program.cfg.client_id) && !string.IsNullOrEmpty(Program.cfg.client_id.ToString())) { Program.cfg.client_id = Functions.EncryptString(Program.cfg.client_id.ToString()); }
+            if (!CheckEnc(Program.cfg.client_secret) && !string.IsNullOrEmpty(Program.cfg.client_secret.ToString())) { Program.cfg.client_secret = Functions.EncryptString(Program.cfg.client_secret.ToString()); }
+            if (!CheckEnc(Program.cfg.access_token) && !string.IsNullOrEmpty(Program.cfg.access_token.ToString())) { Program.cfg.access_token = Functions.EncryptString(Program.cfg.access_token.ToString()); }
 
             Trace.WriteLine("stuff encrypted");
 

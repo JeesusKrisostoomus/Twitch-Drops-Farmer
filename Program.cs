@@ -21,6 +21,10 @@ namespace TwitchDropFarmBot
         public static void Main()
         {
             Console.Clear();
+
+            if (!Functions.IsPassSet)
+                Functions.AskForCreds();
+
             if (!File.Exists("config.json"))
             {
                 Functions.GenerateConfigFile();
@@ -30,12 +34,9 @@ namespace TwitchDropFarmBot
             DBManager dbManager = new DBManager(DBManager.databasePath);
             ManageStreamers.LoadStreamerList();
 
-            if (!Functions.IsPassSet)
-                Functions.AskForCreds();
-
             cfg = Functions.LoadConfig();
 
-            if (cfg.access_token.ToString().Contains("=")) {
+            if (cfg.access_token.ToString().Contains("ENC_")) {
                 Functions.DecryptString(cfg.access_token.ToString(), false);
                 Console.Clear();
             }
@@ -47,7 +48,7 @@ namespace TwitchDropFarmBot
             );
             AnsiConsole.Write(new Rule("[green]Made by: Jeesus Krisostoomus#7737[/]"));
 
-            if (cfg.client_id.ToString() == "" || cfg.client_id.ToString() == "" || cfg.access_token.ToString() == "" || Functions.IsPassInvalid) {
+            if (!string.IsNullOrEmpty(cfg.client_id.ToString()) || !string.IsNullOrEmpty(cfg.client_id.ToString()) || string.IsNullOrEmpty(cfg.access_token.ToString()) || Functions.IsPassInvalid && ManageStreamers.streamers.Count >= 1) {
                 AnsiConsole.MarkupLine("Ready to use: [red]False[/]");
             } else {
                 AnsiConsole.MarkupLine("Ready to use: [green]True[/]");
@@ -112,8 +113,9 @@ namespace TwitchDropFarmBot
                 case 3:
                     if (AnsiConsole.Confirm("Are you sure you want to delete the config?"))
                     {
+                        File.Delete("config.json");
+                        Functions.AskForCreds();
                         Functions.GenerateConfigFile();
-                        Functions.AskForCreds(true);
                         Thread.Sleep(1000);
                         Console.Clear();
                         Main();
