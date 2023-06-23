@@ -73,7 +73,8 @@ namespace TwitchDropFarmBot
                     .AddChoices(new List<Option> {
                         new Option { Id = 1, Name = "Add Streamer" },
                         new Option { Id = 2, Name = "Remove Streamer" },
-                        new Option { Id = 3, Name = "Back" },
+                        new Option { id = 3, Name = "Clear List" },
+                        new Option { Id = 99, Name = "Back" },
                     })
                     .UseConverter(option => option.Name)
                 );
@@ -94,8 +95,19 @@ namespace TwitchDropFarmBot
                     DBManager.DeleteStreamData(id);
                     Main();
                     break;
-
                 case 3:
+                    var id = AnsiConsole.Ask<Int32>("Enter streamer ID:");
+                    if (!AnsiConsole.Confirm("Are you sure you want to remove the streamer?"))
+                    {
+                        break;
+                    }
+                    foreach (StreamerData data in streamers) {
+                        DBManager.DeleteStreamData(streamer.Id);
+                        streamers.Clear();
+                    }
+                    AnsiConsole.MarkupLine("[green]Streamer list has been cleared.[/]");
+                    break;
+                case 99:
                     Program.Main();
                     break;
             }
@@ -124,7 +136,7 @@ namespace TwitchDropFarmBot
                 }
             }
         }
-        private static void AddStreamerToList()
+        private static void AddStreamerToList(bool bulk = false)
         {
             Console.Clear();
             string name = AnsiConsole.Ask<string>("Enter Streamer Name:");
@@ -136,17 +148,33 @@ namespace TwitchDropFarmBot
                 specificGameName = AnsiConsole.Ask<string>("Specific game name:");
             }
 
+            if (bulk) {
+                foreach (string strn in name.Split(',')) {
+                    StreamerData streamer = new StreamerData
+                    {
+                        StreamerName = strn,
+                        HowLongToWatch = hltw,
+                        SpecificGame = specificGame,
+                        SpecificGameName = specificGameName,
+                        Watched = 0,
+                        Done = false
+                    };
+                    
+                    DBManager.InsertStreamData(streamer);
+                }
+            } else {
+                StreamerData streamer = new StreamerData
+                {
+                    StreamerName = name,
+                    HowLongToWatch = hltw,
+                    SpecificGame = specificGame,
+                    SpecificGameName = specificGameName,
+                    Watched = 0,
+                    Done = false
+                };
 
-            StreamerData streamer = new StreamerData
-            {
-                StreamerName = name,
-                HowLongToWatch = hltw,
-                SpecificGame = specificGame,
-                SpecificGameName = specificGameName,
-                Watched = 0,
-                Done = false
-            };
-            DBManager.InsertStreamData(streamer);
+                DBManager.InsertStreamData(streamer);
+            }
             Main();
         }
     }
