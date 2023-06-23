@@ -55,37 +55,42 @@ namespace TwitchDropFarmBot
             
             switch (choice.Id)
             {
-                case 1:
+                case 1: //set client id
                     Console.Clear();
                     Program.cfg.client_id = AnsiConsole.Ask<string>("Enter new Client ID:");
+                    Functions.SaveConfig();
                     ChangeProgramSettings();
                     break;
 
-                case 2:
+                case 2: // set secret
                     Console.Clear();
                     Program.cfg.client_secret = AnsiConsole.Ask<string>("Enter new Client Secret:");
+                    Functions.SaveConfig();
                     ChangeProgramSettings();
                     break;
 
-                case 3:
+                case 3: // get OAuth token
                     Console.Clear();
                     GetOAuth.MainFunc();
+                    Functions.SaveConfig();
                     ChangeProgramSettings();
                     break;
 
-                case 4:
+                case 4: //auto open stream option
                     Console.Clear();
                     Program.cfg.auto_open_stream = !(bool)Program.cfg.auto_open_stream;
+                    Functions.SaveConfig();
                     ChangeProgramSettings();
                     break;
 
-                case 5:
+                case 5: //autoclose stream option
                     Console.Clear();
                     Program.cfg.auto_close_stream = !(bool)Program.cfg.auto_close_stream;
+                    Functions.SaveConfig();
                     ChangeProgramSettings();
                     break;
 
-                case 6:
+                case 6://change process name
                     Console.Clear();
 
                     AnsiConsole.MarkupLine("Examples:" +
@@ -98,30 +103,33 @@ namespace TwitchDropFarmBot
 
                     AnsiConsole.MarkupLine("\n[yellow]Be sure that the name is correct. It will try killing anything you told it to.[/]");
                     Program.cfg.browser_proc_name = AnsiConsole.Ask<string>("Enter browser process name:");
+                    Functions.SaveConfig();
                     ChangeProgramSettings();
                     break;
 
-                case 7:
+                case 7: //sav
+                    //Prob get rid of this
                     Functions.SaveConfig();
                     AnsiConsole.WriteLine("[green]Config save/Encrypted[/]");
                     Thread.Sleep(1000);
                     ChangeProgramSettings();
                     break;
 
-                case 8:
+                case 8: //decrypt values
                     Program.cfg.client_id = Functions.DecryptString(Program.cfg.client_id.ToString());
                     Program.cfg.client_secret = Functions.DecryptString(Program.cfg.client_secret.ToString(), false);
                     Program.cfg.access_token = Functions.DecryptString(Program.cfg.access_token.ToString(), false);
-
+                    //dont save cus unsafe. just copy if need
                     ChangeProgramSettings();
                     break;
 
-                case 9:
+                case 9: //reload config from file
                     Program.cfg = Functions.LoadConfig();
+                    Functions.SaveConfig();
                     ChangeProgramSettings();
                     break;
 
-                case 10:
+                case 10: //back to main menu
                     Console.Clear();
                     Program.Main();
                     break;
