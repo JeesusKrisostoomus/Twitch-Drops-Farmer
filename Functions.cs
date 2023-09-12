@@ -18,19 +18,19 @@ namespace TwitchDropFarmBot
         public static bool IsPassSet = false;
         public static bool IsPassInvalid = true;
 
-        public static void PassValidityCheck() 
+        public static bool IsPassValid() 
         {
             if (!IsPassSet) throw new Exception("Password has not been set yet! Unable to test validity.");
             
             if (DecryptString(Program.cfg.stoinks.ToString()) == "Nightmare") 
             {
                 IsPassInvalid = false;
-                return;
+                return true;
             } 
             else 
             {
                 IsPassInvalid = true;
-                return;
+                return false;
             } 
         }
         
