@@ -48,15 +48,19 @@ namespace TwitchDropFarmBot
             );
             AnsiConsole.Write(new Rule("[green]Made by: Jeesus Krisostoomus#7737[/]"));
 
-            if (!string.IsNullOrEmpty(cfg.client_id.ToString()) || !string.IsNullOrEmpty(cfg.client_id.ToString()) || string.IsNullOrEmpty(cfg.access_token.ToString()) || Functions.IsPassInvalid && ManageStreamers.streamers.Count >= 1) {
+            if (!string.IsNullOrEmpty(cfg.client_id.ToString()) && 
+                !string.IsNullOrEmpty(cfg.client_secret.ToString()) && 
+                !string.IsNullOrEmpty(cfg.access_token.ToString()) && 
+                !Functions.IsPassValid() && 
+                ManageStreamers.streamers.Count > 0) {
                 AnsiConsole.MarkupLine("Ready to use: [red]False[/]");
             } else {
                 AnsiConsole.MarkupLine("Ready to use: [green]True[/]");
             }
-            if (Functions.IsPassInvalid) {
-                AnsiConsole.MarkupLine("Password: [red]Invalid[/]");
-            } else {
+            if (Functions.IsPassValid()) {
                 AnsiConsole.MarkupLine("Password: [green]Valid[/]");
+            } else {
+                AnsiConsole.MarkupLine("Password: [red]Invalid[/]");
             }
 
             var choices = new List<Option> {
