@@ -16,8 +16,24 @@ namespace TwitchDropFarmBot
         private static dynamic SID = System.Security.Principal.WindowsIdentity.GetCurrent().User;
         private static string passPhrase = "";
         public static bool IsPassSet = false;
-        public static bool IsPassInvalid = false;
+        public static bool IsPassInvalid = true;
 
+        public static void PassValidityCheck() 
+        {
+            if (!IsPassSet) throw new Exception("Password has not been set yet! Unable to test validity.");
+            
+            if (DecryptString(Program.cfg.stoinks.ToString()) == "Nightmare") 
+            {
+                IsPassInvalid = false;
+                return;
+            } 
+            else 
+            {
+                IsPassInvalid = true;
+                return;
+            } 
+        }
+        
         public static void AskForCreds(bool changePass = false)
         {
             if (!File.Exists("config.json"))
@@ -127,7 +143,7 @@ namespace TwitchDropFarmBot
             if (!CheckEnc(Program.cfg.client_id) && !string.IsNullOrEmpty(Program.cfg.client_id.ToString())) { Program.cfg.client_id = Functions.EncryptString(Program.cfg.client_id.ToString()); }
             if (!CheckEnc(Program.cfg.client_secret) && !string.IsNullOrEmpty(Program.cfg.client_secret.ToString())) { Program.cfg.client_secret = Functions.EncryptString(Program.cfg.client_secret.ToString()); }
             if (!CheckEnc(Program.cfg.access_token) && !string.IsNullOrEmpty(Program.cfg.access_token.ToString())) { Program.cfg.access_token = Functions.EncryptString(Program.cfg.access_token.ToString()); }
-
+            
             Trace.WriteLine("stuff encrypted");
 
             File.WriteAllText("config.json", JsonConvert.SerializeObject(Program.cfg));
@@ -136,9 +152,14 @@ namespace TwitchDropFarmBot
         {
             // at this point. its easiest and enough
             input = input.ToString();
-            if (input.Contains("ENC_")) return true;
-            else 
-            return false;
+            if (input.Contains("ENC_"))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         public static void GenerateConfigFile()
         {
@@ -154,6 +175,7 @@ namespace TwitchDropFarmBot
             new_config.auto_open_stream = true;
             new_config.auto_close_stream = false;
             new_config.browser_proc_name = "";
+            new_config.stoinks = EncryptString("Nightmare");
 
             File.WriteAllText("config.json", JsonConvert.SerializeObject(new_config));
             //Console.WriteLine("Config has been generated.");
