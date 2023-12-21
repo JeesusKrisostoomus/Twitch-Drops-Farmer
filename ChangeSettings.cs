@@ -44,8 +44,8 @@ namespace TwitchDropFarmBot
                         new Option { Id = 3, Name = "Generate Access Token (OAuth)" },
                         new Option { Id = 4, Name = "Auto Open Stream" },
                         new Option { Id = 5, Name = "Auto Close Browser" },
-                        new Option { Id = 6, Name = "Browser Process Name" },
-                        new Option { Id = 7, Name = "Encrypt Config Values/Save Config" },
+                        new Option { Id = 6, Name = "Set Browser Process Name" },
+                        new Option { Id = 7, Name = "Manual Save Config (Use when autosave doesn't work.)" },
                         new Option { Id = 8, Name = "Decrypt Config Values [red](use only if you want to see the values)[/]" },
                         new Option { Id = 9, Name = "Reload Config" },
                         new Option { Id = 10, Name = "Back" },
@@ -110,7 +110,7 @@ namespace TwitchDropFarmBot
                 case 7: //sav
                     //Prob get rid of this
                     Functions.SaveConfig();
-                    AnsiConsole.WriteLine("[green]Config save/Encrypted[/]");
+                    AnsiConsole.MarkupLine("[green]Config save/Encrypted[/]");
                     Thread.Sleep(1000);
                     ChangeProgramSettings();
                     break;

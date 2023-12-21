@@ -27,8 +27,8 @@ namespace TwitchDropFarmBot
 
             if (!File.Exists("config.json"))
             {
-                Functions.GenerateConfigFile();
                 AnsiConsole.MarkupLine("[red]Config file does not exist![/] Generating one now.");
+                Functions.GenerateConfigFile();
             }
             //if (!File.Exists(DBManager.databasePath)) { new LiteDatabase(DBManager.databasePath); }
             DBManager dbManager = new DBManager(DBManager.databasePath);
@@ -48,15 +48,19 @@ namespace TwitchDropFarmBot
             );
             AnsiConsole.Write(new Rule("[green]Made by: Jeesus Krisostoomus#7737[/]"));
 
-            if (!string.IsNullOrEmpty(cfg.client_id.ToString()) && 
-                !string.IsNullOrEmpty(cfg.client_secret.ToString()) && 
-                !string.IsNullOrEmpty(cfg.access_token.ToString()) && 
-                !Functions.IsPassValid() && 
-                ManageStreamers.streamers.Count > 0) {
-                AnsiConsole.MarkupLine("Ready to use: [red]False[/]");
-            } else {
+            if (!string.IsNullOrEmpty(cfg.client_id.ToString()) &&
+                !string.IsNullOrEmpty(cfg.client_secret.ToString()) &&
+                !string.IsNullOrEmpty(cfg.access_token.ToString()) &&
+                Functions.IsPassValid() &&
+                ManageStreamers.streamers.Count > 0)
+            {
                 AnsiConsole.MarkupLine("Ready to use: [green]True[/]");
             }
+            else
+            {
+                AnsiConsole.MarkupLine("Ready to use: [red]False[/]");
+            }
+
             if (Functions.IsPassValid()) {
                 AnsiConsole.MarkupLine("Password: [green]Valid[/]");
             } else {
