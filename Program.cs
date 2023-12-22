@@ -143,7 +143,7 @@ namespace TwitchDropFarmBot
                     cfg.client_id = Functions.DecryptString(Program.cfg.client_id.ToString(), false);
                     cfg.client_secret = Functions.DecryptString(Program.cfg.client_secret.ToString(), false);
                     cfg.access_token = Functions.DecryptString(Program.cfg.access_token.ToString(), false);
-
+                        
                     Console.Clear();
                     Functions.AskForCreds(true);
 

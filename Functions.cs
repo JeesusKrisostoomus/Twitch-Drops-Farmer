@@ -72,6 +72,9 @@ namespace TwitchDropFarmBot
                     new TextPrompt<string>("Enter new password: ")
                         .PromptStyle("red")
                         .Secret());
+                IsPassSet = false;
+                IsPassInvalid = true;
+                Program.cfg.stoinks = EncryptString("Nightmare");
             }
             else
             {
