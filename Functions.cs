@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -21,7 +22,29 @@ namespace TwitchDropFarmBot
         public static bool IsPassValid() 
         {
             if (!IsPassSet) throw new Exception("Password has not been set yet! Unable to test validity.");
-            
+
+            if (Program.cfg.stoinks == null)
+            {
+                AnsiConsole.MarkupLine("[red]Old config detected.[/]\nAttempting validity conversion...");
+                try
+                {
+                    if (DecryptString(Program.cfg.client_id.ToString()) == Program.cfg.client_id.ToString())
+                    {
+                        throw new Exception("Couldn't convert config. Please make new config.");
+                    }
+
+                    Program.cfg.stoinks = EncryptString("Nightmare");
+                    SaveConfig();
+                    AnsiConsole.MarkupLine("[green]Conversion success?!\n[/]");
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine(ex.Message);
+                    throw new Exception("Couldn't convert config. Please make new config..");
+                }
+
+            }
+
             if (DecryptString(Program.cfg.stoinks.ToString()) == "Nightmare") 
             {
                 IsPassInvalid = false;

@@ -30,6 +30,7 @@ namespace TwitchDropFarmBot
                 AnsiConsole.MarkupLine("[red]Config file does not exist![/] Generating one now.");
                 Functions.GenerateConfigFile();
             }
+
             //if (!File.Exists(DBManager.databasePath)) { new LiteDatabase(DBManager.databasePath); }
             DBManager dbManager = new DBManager(DBManager.databasePath);
             ManageStreamers.LoadStreamerList();
