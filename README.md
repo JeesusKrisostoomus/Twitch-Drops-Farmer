@@ -22,10 +22,9 @@ It checks every x minutes (default 1 minute) if any of the target streamers are 
 7) Start this program and enter password (If its your first time using this then put a password you will use to encrypt the details.)
 8) Now go to "Change Settings" and choose option "Client ID" and from twitch developer console copy your Client ID.
 9) Do the same for "Client Secret". Press "New Secret" to get it.
-10) Now in the application choose "Encrypt Config Values/Save Config"
-11) Now choose "Generate Access Token (OAuth)" and wait for it to be done.
-12) Now again choose "Encrypt Config Values/Save Config".
-13) Add streamers to list, change the settings as you prefer and enjoy the bot.
+10) Now choose "Generate Access Token (OAuth)" and wait for it to be done.
+11) Now again choose "Encrypt Config Values/Save Config".
+12) Add streamers to list, change the settings as you prefer and enjoy the bot.
 
 [optional] Use a script that auto-claims twitch drops for you. Otherwise there could be some problems with fe. generic drops in rust
 
