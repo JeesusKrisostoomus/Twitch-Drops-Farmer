@@ -35,7 +35,7 @@ namespace TwitchDropFarmBot
         {
             var collection = database.GetCollection<StreamerData>("streamData");
             var streamData = collection.FindById(id);
-            streamData.Watched += watchedMinutes;
+            streamData.Watched = watchedMinutes;
             collection.Update(streamData);
         }
         public static void UpdateDone(int id, bool value)

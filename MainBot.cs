@@ -174,6 +174,7 @@ namespace TwitchDropFarmBot
                                                             }
                                                         }
                                                     }
+                                                    AnsiConsole.MarkupLine("[green]Watching task for {0} is now complete![/]", streamername);
                                                     break;
 
                                                 }
@@ -182,19 +183,12 @@ namespace TwitchDropFarmBot
                                         });
 
                                         t.Start();
-
-
                                         Thread.Sleep(nightmare);
                                         t.Abort();
 
                                         //Thread.Sleep(1000 * 60 * (streamer.HowLongToWatch-watched));
                                         //Watcher.Dispose();
-
-                                            
-
                                     }
-
-                                    
                                 }
                             }
 
